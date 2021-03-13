@@ -17,7 +17,7 @@
     "serverless-http": "^2.7.0"
   },
   "scripts": {
-    "dev": "nodemon ./index.js",
-    "start": "netlify ./index.js"
+    "build": "netlify-lambda build ./index.js",
+    "start": "nodemon server-local.js"
   }
 }
