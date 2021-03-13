@@ -12,10 +12,11 @@
     "@tinyhttp/cors": "^1.2.0",
     "@tinyhttp/logger": "^1.2.1",
     "body-parser": "^1.19.0",
+    "netlify-lambda": "^2.0.3",
     "nodemon": "^2.0.7"
   },
   "scripts": {
     "dev": "nodemon ./index.js",
-    "start": "nodemon ./index.js"
+    "start": "netlify ./index.js"
   }
 }
