@@ -13,6 +13,7 @@
     "@tinyhttp/cors": "^1.1.7",
     "@tinyhttp/logger": "^1.1.14",
     "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
     "nodemon": "^2.0.7"
   },
   "scripts": {
