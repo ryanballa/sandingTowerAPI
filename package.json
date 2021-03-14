@@ -1,32 +1,21 @@
 {
-  "name": "netlify-express",
-  "version": "0.0.1",
-  "description": "Example of how to deploy a Express.js Netlify app.",
-  "main": "functions/server.js",
-  "scripts": {
-    "build": "netlify-lambda build express",
-    "start": "nodemon server-local.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/neverendingqs/netlify-express.git"
-  },
-  "keywords": [
-    "netlify",
-    "express.js"
-  ],
-  "author": "neverendingqs",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/neverendingqs/netlify-express/issues"
-  },
-  "homepage": "https://github.com/neverendingqs/netlify-express#readme",
-  "dependencies": {},
-  "devDependencies": {
+  "name": "SnadingTowerAPI",
+  "version": "1.0.0",
+  "description": "API for LocomotiveHouse",
+  "main": "index.js",
+  "author": "Ryan Balla",
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "dependencies": {
+    "@sanity/client": "^2.2.6",
+    "@tinyhttp/app": "^1.1.12",
+    "@tinyhttp/cors": "^1.1.7",
+    "@tinyhttp/logger": "^1.1.14",
     "body-parser": "^1.19.0",
-    "express": "^4.17.1",
-    "netlify-lambda": "^1.6.3",
-    "nodemon": "^1.19.2",
-    "serverless-http": "^2.3.0"
+    "nodemon": "^2.0.7"
+  },
+  "scripts": {
+    "dev": "nodemon ./index.js"
   }
 }
