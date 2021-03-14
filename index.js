@@ -13,7 +13,7 @@ const app = new App({
 })
 
 app
-    .use(cors({ origin: 'http://localhost:8080', allowedHeaders: ['Content-Type'] }))
+    .use(cors({ origin: 'http://localhost:5000', allowedHeaders: ['Content-Type'] }))
     .use(logger())
     .use(bodyParser.json())
     .get('/api/user/:email', async (req, res) => {
