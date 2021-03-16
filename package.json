@@ -9,11 +9,14 @@
   "type": "module",
   "dependencies": {
     "@sanity/client": "^2.2.6",
-    "@tinyhttp/app": "^1.1.12",
-    "@tinyhttp/cors": "^1.1.7",
-    "@tinyhttp/logger": "^1.1.14",
     "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
     "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-jwt": "^6.0.0",
+    "express-jwt-authz": "^2.4.1",
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^2.0.1",
     "nodemon": "^2.0.7"
   },
   "scripts": {
