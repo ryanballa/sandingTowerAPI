@@ -23,7 +23,7 @@ const checkJwt = jwt({
     algorithms: ['RS256']
 });
 
-app2.use(cors({ origin: 'http://localhost:5000', allowedHeaders: ['Content-Type', 'Authorization'] }));
+app2.use(cors({ origin: ['http://localhost:5000', 'https://locomotivehouse.com'], allowedHeaders: ['Content-Type', 'Authorization'] }));
 
 app2.get('/api/user/:email', checkJwt, async function (req, res) {
     const email = req.params.email;
