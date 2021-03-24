@@ -1,13 +1,16 @@
 import sanity from './lib/sanity.js';
+import { add, format, toDate } from 'date-fns';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import jwt from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
 import express from 'express';
+import dotenv from 'dotenv'
+dotenv.config()
 
 const app = express();
 
-const checkJwt = jwt({
+const checkJwt = !process.env.INTERNAL ? jwt({
     // Dynamically provide a signing key
     // based on the kid in the header and 
     // the signing keys provided by the JWKS endpoint.
@@ -22,7 +25,7 @@ const checkJwt = jwt({
     audience: '87L3BqxrCNlT2Cnqac8JQB37ybOb5l9K',
     issuer: `https://dev-1onipavl.us.auth0.com/`,
     algorithms: ['RS256']
-});
+}) : (req, resp, next) => { next() };
 
 app.use(bodyParser.json());
 app.use(cors({ origin: ['http://localhost:5000', 'https://locomotivehouse.com'], allowedHeaders: ['Content-Type', 'Authorization'] }));
@@ -48,6 +51,18 @@ app.post('/api/user', checkJwt, async function (req, res) {
         console.log(e);
     }
     res.status(200).json(userRes);
+});
+
+app.get('/api/users/:clubId', checkJwt, async function (req, res) {
+    const clubId = req.params.clubId;
+    const query = `*[_type == 'user' && membership[]._ref == '${clubId}']{ _id, name }`;
+    let usersReq = [];
+    try {
+        usersReq = await sanity.fetch(query);
+    } catch (e) {
+        console.log(`Error: ${e}`);
+    }
+    res.status(200).json(usersReq);
 });
 
 app.get('/api/clubs', async function (req, res) {
@@ -81,6 +96,154 @@ app.post('/api/locomotives', checkJwt, async function (req, res) {
         console.log(e);
     }
     res.status(200).json(locomotveRes);
+});
+
+app.delete('/api/locomotives/:locomotiveId', checkJwt, async function (req, res) {
+    const locomotiveId = req.params.locomotiveId;
+    let locomotveRes = [];
+    try {
+        locomotveRes = await sanity.delete(locomotiveId);
+    } catch (e) {
+        console.log(e);
+    }
+    res.status(200).json(locomotveRes.results[0]);
+});
+
+app.get('/api/cabs/:clubId', checkJwt, async function (req, res) {
+    const clubId = req.params.clubId;
+    const query = `*[_type == 'cabs' && owner._ref in *[_type=="user" && membership[]._ref == '${clubId}']._id]{ _id, number, "cabOwner": owner->{name,_id} }`;
+    let cabsQuery = [];
+    try {
+        cabsQuery = await sanity.fetch(query);
+    } catch (e) {
+        cabsQuery = e;
+    }
+    res.status(200).json(cabsQuery);
+});
+
+app.post('/api/cab', checkJwt, async function (req, res) {
+    const doc = req.body;
+    let cabRes = null;
+    try {
+        cabRes = await sanity.create(doc);
+    } catch (e) {
+        console.log(e);
+    }
+    res.status(200).json(cabRes);
+});
+
+app.delete('/api/cabs/:cabId', checkJwt, async function (req, res) {
+    const cabId = req.params.cabId;
+    let cabRes = [];
+    try {
+        cabRes = await sanity.delete(cabId);
+    } catch (e) {
+        console.log(e);
+    }
+    res.status(200).json(cabRes.results[0]);
+});
+
+app.get('/api/consists/:clubId', checkJwt, async function (req, res) {
+    const clubId = req.params.clubId;
+    const query = `*[_type == 'concists' && owner._ref in *[_type=="user" && membership[]._ref == '${clubId}']._id]{ _id, _updatedAt, number, locomotiveAddresses, "concistOwner": owner->{name,_id} }`;
+    let consistsQuery = [];
+    try {
+        consistsQuery = await sanity.fetch(query);
+    } catch (e) {
+        consistsQuery = e;
+    }
+    res.status(200).json(consistsQuery);
+});
+
+app.post('/api/consist', checkJwt, async function (req, res) {
+    const doc = req.body;
+    let concistRes = null;
+    try {
+        concistRes = await sanity.create(doc);
+    } catch (e) {
+        console.log(e);
+    }
+    res.status(200).json(concistRes);
+});
+
+app.delete('/api/consists/:consistId', checkJwt, async function (req, res) {
+    const consistId = req.params.consistId;
+    let consistRes = [];
+    try {
+        consistRes = await sanity.delete(consistId);
+    } catch (e) {
+        console.log(e);
+    }
+    res.status(200).json(consistRes.results[0]);
+});
+
+app.get('/api/schedule/:clubId', checkJwt, async function (req, res) {
+    const clubId = req.params.clubId;
+    const query = `*[_type == 'schedule' && owner._ref in *[_type=="user" && membership[]._ref == '${clubId}']._id]{ _id, date, notes, "membership": membership->name, "owner": owner->{name, _id} }`;
+    let scheduleQuery = [];
+    try {
+        scheduleQuery = await sanity.fetch(query);
+    } catch (e) {
+        scheduleQuery = e;
+    }
+    res.status(200).json(scheduleQuery);
+});
+
+app.get('/api/schedule/:clubId/users/:date', checkJwt, async function (req, res) {
+    // TODO: Use clubId
+    const clubId = req.params.clubId;
+    const addingDateFormat = toDate(
+        new Date(req.params.date),
+    );;
+    const addedDate = add(new Date(addingDateFormat), { hours: 24 });
+    const subtractedDate = add(new Date(addingDateFormat), { hours: -24 });
+    const usersOnDateQuery = `*[_type == 'schedule' && date > '${format(
+        new Date(subtractedDate),
+        'yyyy-MM-dd',
+    )}' && date < '${format(
+        new Date(addedDate),
+        'yyyy-MM-dd',
+    )}']{ _id, date, "membership": membership->name, "owner": owner->{name, _id} }`;
+    let usersOnAddingDateRes = null;
+    try {
+        usersOnAddingDateRes = await sanity.fetch(usersOnDateQuery);
+    } catch (e) {
+        usersOnAddingDateRes = e;
+    }
+    res.status(200).json(usersOnAddingDateRes);
+});
+
+app.post('/api/schedule', checkJwt, async function (req, res) {
+    const doc = req.body;
+    let scheduleRes = null;
+    try {
+        scheduleRes = await sanity.create(doc);
+    } catch (e) {
+        console.log(e);
+    }
+    res.status(200).json(scheduleRes);
+});
+
+app.delete('/api/schedule/:scheduleId', checkJwt, async function (req, res) {
+    const scheduleId = req.params.scheduleId;
+    let scheduleRes = [];
+    try {
+        scheduleRes = await sanity.delete(scheduleId);
+    } catch (e) {
+        console.log(e);
+    }
+    res.status(200).json(scheduleRes.results[0]);
+});
+
+app.post('/api/profile', checkJwt, async function (req, res) {
+    const doc = req.body;
+    let profileRes = null;
+    try {
+        profileRes = await sanity.create(doc);
+    } catch (e) {
+        console.log(e);
+    }
+    res.status(200).json(profileRes);
 });
 
 app.listen(process.env.PORT || 4000)
