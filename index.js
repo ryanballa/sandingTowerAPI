@@ -271,7 +271,7 @@ app.get('/api/changelog', async function (req, res) {
 
 app.get('/api/towers/:clubId', async function (req, res) {
     const clubId = req.params.clubId;
-    const query = `*[_type == 'tower' && membership._ref == '${clubId}']{ _id, description, name, maintainer->{name, _id}, membership->{name, _id} }`;
+    const query = `*[_type == 'tower' && membership._ref == '${clubId}']{ _id, description, "imageCaption": image.caption, "imageUrl": image.asset->url, name, maintainer[]->{name, _id}, membership->{name, _id} }`;
     let scheduleQuery = [];
     try {
         scheduleQuery = await sanity.fetch(query);
