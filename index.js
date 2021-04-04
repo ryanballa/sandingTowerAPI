@@ -23,7 +23,7 @@ const checkJwt = !process.env.INTERNAL ? jwt({
 
     // Validate the audience and the issuer.
     audience: process.env.AUDIENCE,
-    issuer: `https://dev-1onipavl.us.auth0.com/api/v2/`,
+    issuer: `https://dev-1onipavl.us.auth0.com/`,
     algorithms: ['RS256']
 }) : (req, resp, next) => { next() };
 
