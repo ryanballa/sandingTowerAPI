@@ -32,14 +32,14 @@ app.use(cors({ origin: ['http://localhost:5000', 'https://locomotivehouse.com'],
 
 app.get('/api/user/:email', checkJwt, async function (req, res) {
     const email = req.params.email;
-    const query = `*[_type == 'user' && email == '${email}']{ _id, name, email, "profiles": *[ _type == "profile" && references(^._id)] }`;
+    const query = `*[_type == 'user' && email == '${email}']{ _id, name, email, membership[]->{ _id, name }, "profiles": *[ _type == "profile" && references(^._id)] }`;
     let usersReq = [];
     try {
         usersReq = await sanity.fetch(query);
     } catch (e) {
         console.log(`Error: ${e}`);
     }
-    res.status(200).json(usersReq);
+    res.status(200).json(usersReq[0]);
 });
 
 app.post('/api/user', checkJwt, async function (req, res) {
@@ -238,12 +238,59 @@ app.delete('/api/schedule/:scheduleId', checkJwt, async function (req, res) {
 app.post('/api/profile', checkJwt, async function (req, res) {
     const doc = req.body;
     let profileRes = null;
-    try {
-        profileRes = await sanity.create(doc);
-    } catch (e) {
-        console.log(e);
+    if (doc._id) {
+        try {
+            profileRes = await sanity.patch(doc._id).set({
+                bio: doc.bio,
+                fontSize: doc.fontSize,
+                timePreference: doc.timePreference,
+            }).commit();
+        } catch (e) {
+            console.log(e);
+        }
+    } else {
+        try {
+            profileRes = await sanity.create(doc);
+        } catch (e) {
+            console.log(e);
+        }
     }
     res.status(200).json(profileRes);
+});
+
+app.get('/api/changelog', async function (req, res) {
+    const query = `*[_type == 'changelog']{ _id, _updatedAt, description }`;
+    let scheduleQuery = [];
+    try {
+        scheduleQuery = await sanity.fetch(query);
+    } catch (e) {
+        scheduleQuery = e;
+    }
+    res.status(200).json(scheduleQuery);
+});
+
+app.get('/api/towers/:clubId', async function (req, res) {
+    const clubId = req.params.clubId;
+    const query = `*[_type == 'tower' && membership._ref == '${clubId}']{ _id, description, name, maintainer->{name, _id}, membership->{name, _id} }`;
+    let scheduleQuery = [];
+    try {
+        scheduleQuery = await sanity.fetch(query);
+    } catch (e) {
+        scheduleQuery = e;
+    }
+    res.status(200).json(scheduleQuery);
+});
+
+app.get('/api/issues/:clubId', async function (req, res) {
+    const clubId = req.params.clubId;
+    const query = `*[_type == 'issue' && membership._ref in *[_type=="tower" && membership._ref == '${clubId}']._id]{_id, name, description, urgency, status, membership->{_id}, responder[]->{name, _id} }`;
+    let scheduleQuery = [];
+    try {
+        scheduleQuery = await sanity.fetch(query);
+    } catch (e) {
+        scheduleQuery = e;
+    }
+    res.status(200).json(scheduleQuery);
 });
 
 app.listen(process.env.PORT || 4000)
