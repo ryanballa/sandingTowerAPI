@@ -18,12 +18,12 @@ const checkJwt = !process.env.INTERNAL ? jwt({
         cache: true,
         rateLimit: true,
         jwksRequestsPerMinute: 5,
-        jwksUri: `https://login.locomotivehouse.com/.well-known/jwks.json`
+        jwksUri: `https://dev-1onipavl.us.auth0.com/.well-known/jwks.json`
     }),
 
     // Validate the audience and the issuer.
     audience: `${process.env.AUDIENCE}`,
-    issuer: `https://dev-1onipavl.us.auth0.com/`,
+    issuer: `https://login.locomotivehouse.com/`,
     algorithms: ['RS256']
 }) : (req, resp, next) => { next() };
 
