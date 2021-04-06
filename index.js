@@ -293,4 +293,40 @@ app.get('/api/issues/:clubId', async function (req, res) {
     res.status(200).json(scheduleQuery);
 });
 
+app.post('/api/issues/:clubId', async function (req, res) {
+    const doc = req.body;
+    let issuesRes = null;
+    if (doc._id) {
+        try {
+            issuesRes = await sanity.patch(doc._id).set({
+                name: doc.name,
+                status: doc.status,
+                urgency: doc.urgency,
+                responder: doc.responder,
+            }).commit();
+        } catch (e) {
+            console.log(e);
+        }
+    } else {
+        try {
+            profileRes = await sanity.create(doc);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    res.status(200).json(issuesRes);
+});
+
+app.delete('/api/issue/:issueId', checkJwt, async function (req, res) {
+    const issueId = req.params.issueId;
+    let issueRes = [];
+    try {
+        issueRes = await sanity.delete(issueId);
+    } catch (e) {
+        console.log(e);
+    }
+    res.status(200).json(issueRes.results[0]);
+});
+
+
 app.listen(process.env.PORT || 4000)
