@@ -28,7 +28,7 @@ const checkJwt = !process.env.INTERNAL ? jwt({
 }) : (req, resp, next) => { next() };
 
 app.use(bodyParser.json());
-app.use(cors({ origin: ['http://localhost:5000', 'https://locomotivehouse.com'], allowedHeaders: ['Content-Type', 'Authorization'] }));
+app.use(cors({ origin: ['http://localhost:5000', 'https://locomotivehouse.com', '35.241.31.122'], allowedHeaders: ['Content-Type', 'Authorization'] }));
 
 app.get('/api/user/:email', checkJwt, async function (req, res) {
     const email = req.params.email;
@@ -309,7 +309,31 @@ app.post('/api/issues/:clubId', async function (req, res) {
         }
     } else {
         try {
-            profileRes = await sanity.create(doc);
+            issuesRes = await sanity.create(doc);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    res.status(200).json(issuesRes);
+});
+
+app.post('/api/issue/:issueId', async function (req, res) {
+    const doc = req.body;
+    let issuesRes = null;
+    if (doc._id) {
+        try {
+            issuesRes = await sanity.patch(doc._id).set({
+                name: doc.name,
+                status: doc.status,
+                urgency: doc.urgency,
+                responder: doc.responder,
+            }).commit();
+        } catch (e) {
+            console.log(e);
+        }
+    } else {
+        try {
+            issuesRes = await sanity.create(doc);
         } catch (e) {
             console.log(e);
         }
