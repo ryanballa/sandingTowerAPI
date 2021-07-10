@@ -158,10 +158,22 @@ app.get('/api/consists/:clubId', checkJwt, async function (req, res) {
 app.post('/api/consist', checkJwt, async function (req, res) {
     const doc = req.body;
     let concistRes = null;
-    try {
-        concistRes = await sanity.create(doc);
-    } catch (e) {
-        console.log(e);
+    if (doc._id) {
+        try {
+            consistRes = await sanity.patch(doc._id).set({
+                number: doc.number,
+                locomotiveAddresses: doc.locomotiveAddresses,
+                owner: doc.owner,
+            }).commit();
+        } catch (e) {
+            console.log(e);
+        }
+    } else {
+        try {
+            concistRes = await sanity.create(doc);
+        } catch (e) {
+            console.log(e);
+        }
     }
     res.status(200).json(concistRes);
 });
