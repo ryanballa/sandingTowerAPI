@@ -55,7 +55,7 @@ app.post('/api/user', checkJwt, async function (req, res) {
 
 app.get('/api/users/:clubId', checkJwt, async function (req, res) {
     const clubId = req.params.clubId;
-    const query = `*[_type == 'user' && membership[]._ref == '${clubId}']{ _id, name }`;
+    const query = `*[_type == 'user' && membership[]._ref == '${clubId}']{ _id, name, isAdmin }`;
     let usersReq = [];
     try {
         usersReq = await sanity.fetch(query);
