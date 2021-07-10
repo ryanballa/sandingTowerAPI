@@ -32,7 +32,7 @@ app.use(cors({ origin: ['http://localhost:5000', 'https://locomotivehouse.com', 
 
 app.get('/api/user/:email', checkJwt, async function (req, res) {
     const email = req.params.email;
-    const query = `*[_type == 'user' && email == '${email}']{ _id, name, email, membership[]->{ _id, name }, "profiles": *[ _type == "profile" && references(^._id)] }`;
+    const query = `*[_type == 'user' && email == '${email}']{ _id, name, email, isAdmin, membership[]->{ _id, name }, "profiles": *[ _type == "profile" && references(^._id)] }`;
     let usersReq = [];
     try {
         usersReq = await sanity.fetch(query);
@@ -55,7 +55,7 @@ app.post('/api/user', checkJwt, async function (req, res) {
 
 app.get('/api/users/:clubId', checkJwt, async function (req, res) {
     const clubId = req.params.clubId;
-    const query = `*[_type == 'user' && membership[]._ref == '${clubId}']{ _id, name, isAdmin }`;
+    const query = `*[_type == 'user' && membership[]._ref == '${clubId}']{ _id, name }`;
     let usersReq = [];
     try {
         usersReq = await sanity.fetch(query);
