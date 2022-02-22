@@ -12,25 +12,66 @@ dotenv.config();
 
 const app = express();
 
-const checkUserIsLoggedIn = (req, resp) => {
-  /*
-    Assumes DIDToken was passed in the Authorization header
-    in the standard `Bearer {token}` format.
-   */
-  console.log(req.headers);
-  const DIDToken = req.headers.authorization?.substring(7);
-  let issuer = null;
-  if (DIDToken) {
-    issuer = mAdmin.token.getIssuer(DIDToken);
+const checkJwt = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(403).json({
+      status: 403,
+      message: 'FORBIDDEN',
+    });
+  } else {
+    const DIDToken = req.headers.authorization?.substring(7);
+
+    if (DIDToken) {
+      return mAdmin.token
+        .getIssuer(DIDToken)
+        .then((userId) => {
+          // ------------------------------------
+          // HI I'M THE UPDATED CODE BLOCK, LOOK AT ME
+          // ------------------------------------
+          res.locals.auth = {
+            userId,
+          };
+          next();
+        })
+        .catch((err) => {
+          logger.logError(err);
+
+          return res.status(401).json({
+            status: 401,
+            message: 'UNAUTHORIZED',
+          });
+        });
+    } else {
+      return res.status(403).json({
+        status: 403,
+        message: 'FORBIDDEN',
+      });
+    }
   }
-  return issuer !== null ? true : false;
 };
 
-const checkJwt = !process.env.INTERNAL
-  ? checkUserIsLoggedIn
-  : (req, resp, next) => {
-      next();
-    };
+// const checkUserIsLoggedIn = (req, res, next) => {
+//   /*
+//     Assumes DIDToken was passed in the Authorization header
+//     in the standard `Bearer {token}` format.
+//    */
+//   console.log(req.headers);
+//   // const DIDToken = req.headers.authorization?.substring(7);
+//   // let issuer = null;
+//   // if (DIDToken) {
+//   //   issuer = mAdmin.token.getIssuer(DIDToken);
+//   // }
+//   res.status(403);
+//   next();
+// };
+
+// const checkJwt = !process.env.INTERNAL
+//   ? checkUserIsLoggedIn
+//   : (req, resp, next) => {
+//       next();
+//     };
 
 app.use(bodyParser.json());
 app.use(
