@@ -5,6 +5,7 @@ import cors from 'cors';
 import express from 'express';
 import dotenv from 'dotenv';
 import { Magic } from '@magic-sdk/admin';
+import e from 'cors';
 
 const mAdmin = new Magic(process.env.API_KEY);
 
@@ -24,25 +25,18 @@ const checkJwt = (req, res, next) => {
     const DIDToken = req.headers.authorization?.substring(7);
 
     if (DIDToken) {
-      return mAdmin.token
-        .getIssuer(DIDToken)
-        .then((userId) => {
-          // ------------------------------------
-          // HI I'M THE UPDATED CODE BLOCK, LOOK AT ME
-          // ------------------------------------
-          res.locals.auth = {
-            userId,
-          };
-          next();
-        })
-        .catch((err) => {
-          logger.logError(err);
-
-          return res.status(401).json({
-            status: 401,
-            message: 'UNAUTHORIZED',
-          });
+      const issuer = mAdmin.token.getIssuer(DIDToken);
+      if (issuer) {
+        res.locals.auth = {
+          userId: issuer,
+        };
+        next();
+      } else {
+        return res.status(401).json({
+          status: 401,
+          message: 'UNAUTHORIZED',
         });
+      }
     } else {
       return res.status(403).json({
         status: 403,
