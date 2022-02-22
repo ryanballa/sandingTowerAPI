@@ -12,18 +12,22 @@ dotenv.config();
 
 const app = express();
 
-const checkUserIsLoggedIn = () => {
+const checkUserIsLoggedIn = (req, resp) => {
   /*
     Assumes DIDToken was passed in the Authorization header
     in the standard `Bearer {token}` format.
    */
-  const DIDToken = req.headers.authorization.substring(7);
-  const issuer = mAdmin.token.getIssuer(DIDToken);
-  return issuer ? true : false;
+  console.log(req.headers);
+  const DIDToken = req.headers.authorization?.substring(7);
+  let issuer = null;
+  if (DIDToken) {
+    issuer = mAdmin.token.getIssuer(DIDToken);
+  }
+  return issuer !== null ? true : false;
 };
 
 const checkJwt = !process.env.INTERNAL
-  ? checkUserIsLoggedIn()
+  ? checkUserIsLoggedIn
   : (req, resp, next) => {
       next();
     };
@@ -33,6 +37,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:5000',
+      'http://localhost:5003',
       'https://locomotivehouse.com',
       '35.241.31.122',
     ],
