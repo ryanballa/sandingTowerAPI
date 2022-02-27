@@ -5,7 +5,6 @@ import cors from 'cors';
 import express from 'express';
 import dotenv from 'dotenv';
 import { Magic } from '@magic-sdk/admin';
-import e from 'cors';
 
 const mAdmin = new Magic(process.env.API_KEY);
 
@@ -45,27 +44,6 @@ const checkJwt = (req, res, next) => {
     }
   }
 };
-
-// const checkUserIsLoggedIn = (req, res, next) => {
-//   /*
-//     Assumes DIDToken was passed in the Authorization header
-//     in the standard `Bearer {token}` format.
-//    */
-//   console.log(req.headers);
-//   // const DIDToken = req.headers.authorization?.substring(7);
-//   // let issuer = null;
-//   // if (DIDToken) {
-//   //   issuer = mAdmin.token.getIssuer(DIDToken);
-//   // }
-//   res.status(403);
-//   next();
-// };
-
-// const checkJwt = !process.env.INTERNAL
-//   ? checkUserIsLoggedIn
-//   : (req, resp, next) => {
-//       next();
-//     };
 
 app.use(bodyParser.json());
 app.use(
@@ -430,6 +408,30 @@ app.delete('/api/issue/:issueId', checkJwt, async function (req, res) {
     console.log(e);
   }
   res.status(200).json(issueRes.results[0]);
+});
+
+app.get('/api/workOrderItems/:workOrderId', async function (req, res) {
+  const workOrderId = req.params.workOrderId;
+  const query = `*[_type == 'workOrderItem' && membership._ref == '${workOrderId}']{pickup->{name}, dropoff->{name}, dropOffStop->{order, destination->{name, _id}}, pickUpStop->{order, destination->{name, _id}}}`;
+  let workOrderItemsQuery = [];
+  try {
+    workOrderItemsQuery = await sanity.fetch(query);
+  } catch (e) {
+    workOrderItemsQuery = e;
+  }
+  res.status(200).json(workOrderItemsQuery);
+});
+
+app.get('/api/workOrders/:clubId', async function (req, res) {
+  const clubId = req.params.clubId;
+  const query = `*[_type == 'workOrder' && membership._ref == '${clubId}']{name, difficulty, _id}`;
+  let workOrderItemsQuery = [];
+  try {
+    workOrderItemsQuery = await sanity.fetch(query);
+  } catch (e) {
+    workOrderItemsQuery = e;
+  }
+  res.status(200).json(workOrderItemsQuery);
 });
 
 app.listen(process.env.PORT || 4000);
